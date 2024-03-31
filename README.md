@@ -1,4 +1,4 @@
-# LinkedIn Automation Utils
+# LinkedIn Utils
 
 # Title
 A set of standardized automations for various tasks on LinkedIn, flexible to
