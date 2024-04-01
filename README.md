@@ -19,15 +19,23 @@ Coming soon...
 ## Usage
 Coming soon...
 
-## Features
-- [ ] Find and scrap jobs of a defined term
-- [ ] Analyze jobs and generate a document with the main skills that the market demands.
-
 ## Motivation
 I understand the power of LinkedIn in career development, which is why I aim to
 extract the most out of the platform. However, tasks like engaging, connecting,
 and job searching can be tedious and time-consuming. Therefore, I decided to
 automate various tasks within LinkedIn in a flexible and scalable manner.
+
+
+## Automations
+- [ ] Find jobs bot
+- [ ] Jobs posting analysis bot
+
+### Features of each bot
+- Find jobs bot
+
+- Jobs posting analysis bot
+    - [ ] Find and scrap jobs of a defined term
+    - [ ] Analyze jobs and generate a document with the main skills that the market demands.
 
 ## Contributors
 Coming soon...
