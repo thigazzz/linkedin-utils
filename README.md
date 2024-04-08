@@ -27,15 +27,7 @@ automate various tasks within LinkedIn in a flexible and scalable manner.
 
 
 ## Automations
-- [ ] Find jobs bot
-- [ ] Jobs posting analysis bot
-
-### Features of each bot
-- Find jobs bot
-
-- Jobs posting analysis bot
-    - [ ] Find and scrap jobs of a defined term
-    - [ ] Analyze jobs and generate a document with the main skills that the market demands.
+- [ ] Like relevant posts
 
 ## Contributors
 Coming soon...
