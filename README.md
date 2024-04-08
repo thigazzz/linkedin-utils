@@ -28,6 +28,11 @@ automate various tasks within LinkedIn in a flexible and scalable manner.
 
 ## Automations
 - [ ] Like relevant posts
+### Requirements and Business rules of each
+- Like relevant posts
+    - [ ] Like posts of RPA and Python content
+    - [ ] Like posts of top voices
+    - [ ] Like 'Open to work' posts
 
 ## Contributors
 Coming soon...
