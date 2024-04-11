@@ -9,11 +9,14 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-Post = namedtuple("Post", "text, author, attachments")
+
+Post = namedtuple("Post", "text, author")  # TODO: way to get the attachments of post
 
 
 class PageInterface(ABC):
     # TODO: set driver and wait as property
+    @abstractmethod
+    def close(self) -> None: ...
     @abstractmethod
     def auth(self) -> None: ...
     @abstractmethod
@@ -21,6 +24,9 @@ class PageInterface(ABC):
 
 
 class Page(PageInterface):
+    def close(self) -> None:
+        self.__driver.close()
+
     def auth(self):
         self.__driver = webdriver.Firefox()
         self.__driver.get("https://www.linkedin.com")
@@ -39,14 +45,14 @@ class Page(PageInterface):
     def __wait_for_load_feed(self, timeout=10):
         wait = WebDriverWait(self.__driver, timeout=timeout)
         try:
-            # wait the profile title in feed
+            # wait the profile title element in feed
             wait.until(
                 lambda d: self.__driver.find_element(
                     By.CSS_SELECTOR,
                     "div.feed-identity-module [href='/in/thiagopdasilva/'] > div:last-child",
                 ).is_displayed()
             )
-            # wait the chat
+            # wait the chat element
             wait.until(
                 lambda d: self.__driver.find_element(
                     By.CSS_SELECTOR, "aside#msg-overlay > div"
@@ -59,60 +65,16 @@ class Page(PageInterface):
             logging.warning("Feed not loaded!, because: %s", error)
             return
 
-    def get_post(self) -> list[Post]: ...
-
-
-class TestPage(PageInterface):
-    def open_linkeidin(self) -> None:
-        self.__driver = webdriver.Firefox()
-        self.__driver.get("https://www.linkedin.com")
-
-    def auth(self):
-        self.__driver = webdriver.Firefox()
-        self.__driver.get("https://www.linkedin.com")
-        self.__driver.find_element(By.ID, "session_key").send_keys(
-            "thiago.p.dasilva2005@gmail.com"
+    def get_post(self) -> Post:
+        post_element = self.__driver.find_element(
+            By.CSS_SELECTOR, "div.feed-shared-update-v2"
         )
-        self.__driver.find_element(By.ID, "session_password").send_keys("Chavv1712$")
-        self.__driver.find_element(
-            By.CSS_SELECTOR, 'button[data-id="sign-in-form__submit-btn"]'
-        ).click()
+        text = post_element.find_element(
+            By.CSS_SELECTOR,
+            "div.feed-shared-update-v2 div.feed-shared-update-v2__description-wrapper span.text-view-model",
+        ).text.strip()
+        title = post_element.find_element(
+            By.CSS_SELECTOR, "span.text-view-model"
+        ).text.strip()
 
-        logging.info("Login passed!")
-
-        wait = WebDriverWait(self.__driver, timeout=10)
-
-        try:
-            wait.until(
-                lambda d: self.__driver.find_element(
-                    By.CSS_SELECTOR,
-                    "div.feed-identity-module [href='/in/thiagopdasilva/'] > div:last-child",
-                )
-            )
-
-            wait.until(
-                lambda d: self.__driver.find_element(
-                    By.CSS_SELECTOR, "aside#msg-overlay > div"
-                ).is_displayed()
-            )
-
-            logging.info("Feed loaded!")
-        except:
-            logging.warning("Feed not loaded!")
-            return
-
-    def get_post(self) -> Post: ...
-
-
-def test_get_a_post():
-    """
-    >>> get_a_post()
-    >>> (text: str, author: str, attachments: list[str])
-    """
-    assert_post = [Post(text="any", author="any", attachments=["any"])]
-    page = Page()
-
-    page.auth()
-    post = page.get_post()
-
-    assert post == assert_post
+        return Post(text=text, author=title)
