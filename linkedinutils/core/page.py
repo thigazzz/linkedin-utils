@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from selenium import webdriver
@@ -8,10 +9,10 @@ from selenium.webdriver.support.wait import WebDriverWait
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-
-Post = namedtuple("Post", "text, author")  # TODO: way to get the attachments of post
-
+@dataclass
+class Post: # TODO: way to get the attachments of post
+    element: str
+    metadata: tuple[str, str]
 
 class PageInterface(ABC):
     # TODO: set driver and wait as property
@@ -21,6 +22,8 @@ class PageInterface(ABC):
     def auth(self) -> None: ...
     @abstractmethod
     def get_post(self) -> Post: ...
+    @abstractmethod
+    def like_post(self, post) -> None: ...
 
 
 class Page(PageInterface):
@@ -66,15 +69,39 @@ class Page(PageInterface):
             return
 
     def get_post(self) -> Post:
-        post_element = self.__driver.find_element(
-            By.CSS_SELECTOR, "div.feed-shared-update-v2"
-        )
-        text = post_element.find_element(
-            By.CSS_SELECTOR,
-            "div.feed-shared-update-v2 div.feed-shared-update-v2__description-wrapper span.text-view-model",
-        ).text.strip()
-        title = post_element.find_element(
-            By.CSS_SELECTOR, "span.text-view-model"
-        ).text.strip()
+        try:
+            post_element = self.__driver.find_element(
+                By.CSS_SELECTOR, "div.feed-shared-update-v2"
+            )
+            author = post_element.find_element(
+                By.CSS_SELECTOR, "span.text-view-model"
+            ).text.strip()
+            text = post_element.find_element(
+                By.CSS_SELECTOR,
+                "div.feed-shared-update-v2 div.feed-shared-update-v2__description-wrapper span.text-view-model",
+            ).text.strip()
 
-        return Post(text=text, author=title)
+            logging.info("Scrap post")
+
+            return Post(element=post_element, metadata=(author, text))
+        except:
+            logging.info("Fail to scrap post")
+    
+    def like_post(self, post) -> None:
+        try:
+            button = post.find_element(
+                By.CSS_SELECTOR,
+                "span.reactions-react-button > button"
+            )
+            button_press_state = button.get_attribute("aria-pressed")
+            is_post_already_liked = True if button_press_state == "true" else False
+
+            if is_post_already_liked == True:
+                logging.info("Post already liked")
+                return False
+            
+            button.click()
+            logging.info("Liked post")
+            return True
+        except:
+            logging.info("Fail to like post")
