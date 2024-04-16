@@ -1,32 +1,35 @@
+import os
 import logging
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from collections import namedtuple
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+
 @dataclass
-class Post: # TODO: way to get the attachments of post
+class Post:  # TODO: way to get the attachments of post
     element: str
     metadata: tuple[str, str]
 
+
 class PageInterface(ABC):
     # TODO: set driver and wait as property
+    # TODO: Add a type for Elements parameters and return
     @abstractmethod
     def close(self) -> None: ...
     @abstractmethod
     def auth(self) -> None: ...
     @abstractmethod
-    def get_post(self) -> Post: ...
+    def find_element(
+        self, selector: str, type_of_selector: str, by_element=None
+    ) -> None: ...
     @abstractmethod
-    def like_post(self, post) -> None: ...
+    def get_attribute(self, element, attribute: str) -> None: ...
+    @abstractmethod
+    def click_element(self, element) -> None: ...
 
 
-import os
 class Page(PageInterface):
     def close(self) -> None:
         self.__driver.close()
@@ -35,9 +38,11 @@ class Page(PageInterface):
         self.__driver = webdriver.Firefox()
         self.__driver.get("https://www.linkedin.com")
         self.__driver.find_element(By.ID, "session_key").send_keys(
-            os.environ.get('EMAIL_AUTH')
+            os.environ.get("EMAIL_AUTH")
         )
-        self.__driver.find_element(By.ID, "session_password").send_keys(os.environ.get('PASSWORD_AUTH'))
+        self.__driver.find_element(By.ID, "session_password").send_keys(
+            os.environ.get("PASSWORD_AUTH")
+        )
         self.__driver.find_element(
             By.CSS_SELECTOR, 'button[data-id="sign-in-form__submit-btn"]'
         ).click()
@@ -69,40 +74,22 @@ class Page(PageInterface):
             logging.warning("Feed not loaded!, because: %s", error)
             return
 
-    def get_post(self) -> Post:
-        try:
-            post_element = self.__driver.find_element(
-                By.CSS_SELECTOR, "div.feed-shared-update-v2"
-            )
-            author = post_element.find_element(
-                By.CSS_SELECTOR, "span.text-view-model"
-            ).text.strip()
-            text = post_element.find_element(
-                By.CSS_SELECTOR,
-                "div.feed-shared-update-v2 div.feed-shared-update-v2__description-wrapper span.text-view-model",
-            ).text.strip()
+    def find_element(self, selector: str, type_of_selector: str, by_element=None):
+        by = None
+        match type_of_selector:
+            case "ID":
+                by = By.ID
+            case "CSS_SELECTOR":
+                by = By.CSS_SELECTOR
+            case "CLASS_NAME":
+                by = By.CLASS_NAME
 
-            logging.info("Scrap post")
+        if by_element:
+            return by_element.find_element(by, selector)
+        return self.__driver.find_element(by, selector)
 
-            return Post(element=post_element, metadata=(author, text))
-        except:
-            logging.info("Fail to scrap post")
-    
-    def like_post(self, post) -> None:
-        try:
-            button = post.find_element(
-                By.CSS_SELECTOR,
-                "span.reactions-react-button > button"
-            )
-            button_press_state = button.get_attribute("aria-pressed")
-            is_post_already_liked = True if button_press_state == "true" else False
+    def get_attribute(self, element, attribute: str):
+        return element.get_attribute(attribute)
 
-            if is_post_already_liked == True:
-                logging.info("Post already liked")
-                return False
-            
-            button.click()
-            logging.info("Liked post")
-            return True
-        except:
-            logging.info("Fail to like post")
+    def click_element(self, element):
+        element.click()
