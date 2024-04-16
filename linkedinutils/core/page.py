@@ -26,6 +26,7 @@ class PageInterface(ABC):
     def like_post(self, post) -> None: ...
 
 
+import os
 class Page(PageInterface):
     def close(self) -> None:
         self.__driver.close()
@@ -34,9 +35,9 @@ class Page(PageInterface):
         self.__driver = webdriver.Firefox()
         self.__driver.get("https://www.linkedin.com")
         self.__driver.find_element(By.ID, "session_key").send_keys(
-            "thiago.p.dasilva2005@gmail.com"
+            os.environ.get('EMAIL_AUTH')
         )
-        self.__driver.find_element(By.ID, "session_password").send_keys("Chavv1712$")
+        self.__driver.find_element(By.ID, "session_password").send_keys(os.environ.get('PASSWORD_AUTH'))
         self.__driver.find_element(
             By.CSS_SELECTOR, 'button[data-id="sign-in-form__submit-btn"]'
         ).click()
